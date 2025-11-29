@@ -14,7 +14,6 @@ export default defineNuxtConfig({
       theme: {
         preset: Aura,
         options: {
-          // Force dark scheme via a class selector
           darkModeSelector: '.p-dark'
         }
       }
@@ -25,7 +24,7 @@ export default defineNuxtConfig({
       htmlAttrs: {
         class: 'p-dark'
       },
-      title: 'Palm Panel - PWA Builder',
+      title: 'Гранула - ваш лучший инструмент!',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

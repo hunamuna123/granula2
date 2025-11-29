@@ -6,6 +6,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const accessToken = useCookie('access_token', { maxAge: 60 * 60 * 24 });
   const refreshToken = useCookie('refresh_token', { maxAge: 60 * 60 * 24 * 7 });
 
+  // Применяем защиту только для страниц /panel
+  const isProtectedRoute = to.path.startsWith('/panel');
+
   const isAccessExpired = () => {
     try {
       if (!accessToken.value) return true
@@ -17,10 +20,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 
+  // Редирект с логина если уже авторизован
   if (to.path === '/auth/login' && accessToken.value && refreshToken.value) {
-    return navigateTo('/');
+    return navigateTo('/panel');
   }
 
+  // Для незащищённых роутов - пропускаем остальные проверки
+  if (!isProtectedRoute) {
+    return;
+  }
+
+  // Рефреш токена если нужно
   if ((isAccessExpired() || !accessToken.value) && refreshToken.value) {
     try {
       const data = await $fetch(`${apiStore.url}api/v1/refresh/`, {
@@ -34,7 +44,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
       });
 
       if (data.data) {
-        // сохранить с теми же maxAge
         accessToken.value = data.data.access_token;
         refreshToken.value = data.data.refresh_token;
         return;
@@ -44,7 +53,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
   }
 
-  if ((!accessToken.value || isAccessExpired()) && to.path !== '/auth/login') {
+  // Редирект на логин если нет токена
+  if (!accessToken.value || isAccessExpired()) {
     return navigateTo('/auth/login');
   }
 }); 
